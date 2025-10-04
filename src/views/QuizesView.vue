@@ -5,7 +5,19 @@
       <input v-model.trim="search" type="text" placeholder="Search..." style="color: burlywood;">
     </header>
     <div class="options-container">  
-      <Card v-for="quiz in quizzes" :key="quiz.id" :quiz="quiz"/> <!--":quiz" is a prop-->
+      <TransitionGroup 
+        name="card" 
+        appear 
+        @before-enter="beforeEnterHomePage" 
+        @enter="enterHomePage"
+      >
+        <Card 
+          v-for="(quiz, index) in quizzes" 
+          :key="quiz.id" 
+          :quiz="quiz"
+          :data-index="index" 
+        /> 
+      </TransitionGroup>
     </div>
   </div>
 </template>
@@ -14,25 +26,41 @@
 import q from '../data/data.json'
 import { ref, watch } from 'vue'
 import Card from '../components/QuizCard.vue'
-
+import gsap from 'gsap'
 
 // state to store quizzes
 const quizzes = ref(q)
 // search state
 const search = ref('')
 
+
 // watch for changes
 watch(search, () => {
-  /**find quize based on search value
-  .filter(): returns a new array
-           takes a callbac function as input
-           the callback function takes a set of arguments: var for item, index (optional), array (optional)
-  */
   quizzes.value = q.filter((dataQuiz) =>{
     return dataQuiz.name.toLowerCase().includes(search.value.toLowerCase())
   })
 })
 
+// animation functions
+const beforeEnterHomePage = (htmlElement) =>{
+  htmlElement.style.opacity = 0
+    htmlElement.style.transform = 'translateY(60px)'
+
+
+}
+
+const enterHomePage = (htmlElement) =>{
+  // gsap animation
+  gsap.to(htmlElement, 
+    {
+      y:0,
+      opacity:1,
+      duration:0.5,
+      delay: htmlElement.dataset.index * 0.3
+    }
+  )
+
+}
 </script>
 
 
@@ -67,5 +95,16 @@ watch(search, () => {
     margin-top: 40px;
   }
 
+  .card-enter-from{
+    opacity: 0;
+    transform: translateY(-50px);
+  }
 
+.card-enter-to{
+  opacity: 1;
+    transform: translateY(0px);
+}
+.card-enter-active{
+  transition: all 0.5s ease
+}
 </style>
